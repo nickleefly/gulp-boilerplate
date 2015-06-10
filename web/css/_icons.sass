@@ -1,0 +1,29 @@
+@font-face
+  font-family: Boilerplate
+  src: url("../static/fonts/Boilerplate.eot")
+  src: url("../static/fonts/Boilerplate.eot?#iefix") format('embedded-opentype'), url("../static/fonts/Boilerplate.woff") format('woff'), url("../static/fonts/Boilerplate.ttf") format('truetype'), url("../static/fonts/Boilerplate.svg#Boilerplate") format('svg')
+  font-weight: normal
+  font-style: normal
+
+=icon($content)
+  &:before
+    -moz-osx-font-smoothing: grayscale
+    -webkit-font-smoothing: antialiased
+    content: $content
+    font-family: 'Boilerplate'
+    font-style: normal
+    font-variant: normal
+    font-weight: normal
+    line-height: 1
+    speak: none
+    text-transform: none
+    @content
+
+=icon--linkedin
+  +icon("\e001")
+    @content
+
+.icon
+  &.-linkedin
+    +icon--linkedin
+
