@@ -8,7 +8,8 @@ var gulp         = require('gulp'),
     size         = require('gulp-filesize'),
     uglify       = require('gulp-uglify'),
     browserify   = require('browserify'),
-    transform    = require('vinyl-transform'),
+    source       = require('vinyl-source-stream'),
+    buffer       = require('vinyl-buffer'),
     rename       = require('gulp-rename'),
     del          = require('del'),
     vinylPaths   = require('vinyl-paths'),
@@ -110,16 +111,11 @@ gulp.task('images', function() {
 });
 
 gulp.task('browserify', function () {
-  // transform regular node stream to gulp (buffered vinyl) stream
-  var browserified = transform(function(filename) {
-    var b = browserify(filename);
-    return b.bundle();
-  });
-  gulp.src(config.javascript.src + "/index.js")
-    .pipe(browserified)
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-    .pipe(sourcemaps.write()) // writes .map file
-    .pipe(gulp.dest(config.javascript.dest))
+  return browserify([config.javascript.src + '/index.js']).bundle()
+    .pipe(source('index.js'))
+    .pipe(buffer())
+    // .pipe(uglify())
+    .pipe(gulp.dest(config.javascript.dest));
 });
 
 gulp.task('clean:js', function () {
