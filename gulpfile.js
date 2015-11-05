@@ -14,17 +14,16 @@ var gulp         = require('gulp'),
     del          = require('del'),
     vinylPaths   = require('vinyl-paths'),
     iconfont     = require('gulp-iconfont'),
-    swig         = require('gulp-swig');
+    swig         = require('gulp-swig'),
+    factor       = require('factor-bundle')
+    browserSync  = require('browser-sync').create(),
+    fs           = require('fs');
 
 var dest = "./web/static",
     config = {
       sass: {
         src: "./web/css/**/*.{sass,scss}",
-        dest: dest,
-        settings: {
-          indentedSyntax: true, // Enable .sass syntax!
-          imagePath: 'images' // Used by the image-url helper
-        }
+        dest: dest
       },
       images: {
         src: "./web/images/**",
@@ -87,7 +86,8 @@ gulp.task('sass', ['iconfont'], function () {
     .pipe(sass(config.sass.settings))
     //.pipe(sourcemaps.write())
     .pipe(autoprefixer({ browsers: ['last 2 version'] }))
-    .pipe(gulp.dest(config.sass.dest));
+    .pipe(gulp.dest(config.sass.dest))
+    .pipe(browserSync.reload({stream: true}));
 });
 
 gulp.task('clean:css', function () {
@@ -107,15 +107,28 @@ gulp.task('images', function() {
   return gulp.src(config.images.src)
     .pipe(changed(config.images.dest)) // Ignore unchanged files
     .pipe(imagemin()) // Optimize
-    .pipe(gulp.dest(config.images.dest));
+    .pipe(gulp.dest(config.images.dest))
+    .pipe(browserSync.reload({stream: true}));
 });
 
 gulp.task('browserify', function () {
   return browserify([config.javascript.src + '/index.js']).bundle()
     .pipe(source('index.js'))
     .pipe(buffer())
-    // .pipe(uglify())
-    .pipe(gulp.dest(config.javascript.dest));
+    .pipe(gulp.dest(config.javascript.dest))
+    .pipe(browserSync.reload({stream: true}));
+
+  // var files = [
+  //   config.javascript.src + '/index.js',
+  //   config.javascript.src + '/featureA.js'
+  // ];
+  // return  browserify(files)
+  // .plugin(factor, { o: [
+  //   config.javascript.dest + '/index.js',
+  //   config.javascript.dest + '/featureA.js'
+  //   ]
+  // })
+  // .bundle().pipe(fs.createWriteStream( config.javascript.dest + '/common.js'));
 });
 
 gulp.task('clean:js', function () {
@@ -131,10 +144,32 @@ gulp.task('uglify', ['browserify', 'clean:js'], function() {
     .pipe(size());
 });
 
-gulp.task('watch', function(callback) {
-  gulp.watch(config.sass.src, ['sass']);
-  gulp.watch(config.images.src, ['images']);
-  gulp.watch(config.javascript.src + '/*.js', ['browserify']);
+gulp.task('browser-sync', function() {
+  browserSync.init({
+    files: ['web/static/*.css', 'web/static/*.js'],
+    // server: {
+    //   baseDir: "web",
+    //   index: "index.html"
+    // },
+    // proxy: "proxyurl",
+    // port: 8000
+    proxy: {
+      target: "http://127.0.0.1:8080",
+      reqHeaders: function (config) {
+        return {
+          "host": config.urlObj.host,
+          "accept-encoding": "identity",
+          "agent": false
+        }
+      }
+    }
+  });
+});
+
+gulp.task('watch', ['browser-sync'], function(callback) {
+  gulp.watch(config.sass.src, ['sass'], browserSync.reload);
+  gulp.watch(config.images.src, ['images'], browserSync.reload);
+  gulp.watch(config.javascript.src + '/*.js', ['browserify'], browserSync.reload);
 });
 
 gulp.task('default', ['sass', 'browserify', 'images']);
