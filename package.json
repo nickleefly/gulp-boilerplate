@@ -6,6 +6,9 @@
     "type": "git",
     "url": "https://github.com/nickleefly/gulp-boilerplate.git"
   },
+  "scripts": {
+    "start": "./node_modules/.bin/static web/"
+  },
   "//": [
     "The 'plugin' example makes that file requireable with `require('plugin')`,",
     "and available to browserify-shim as 'plugin' on line 30."

@@ -1,7 +1,7 @@
 # gulp boilerplate
 
 run
-`./node_modules/.bin/static web/`
+`npm start`
 
 then open another termianl
 
