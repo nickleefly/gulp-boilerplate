@@ -17,7 +17,6 @@ var gulp = require('gulp'),
   swig = require('gulp-swig'),
   factor = require('factor-bundle'),
   browserSync = require('browser-sync').create(),
-  fs = require('fs'),
   reactify = require('reactify');
 
 var dest = "./web/static",
@@ -113,24 +112,27 @@ gulp.task('images', function() {
 });
 
 gulp.task('browserify', function () {
-  // return browserify({
-  //   entries: [
-  //     config.javascript.src + '/index.js',
-  //     config.javascript.src + '/featureA.js',
-  //     config.javascript.src + '/featureB.js'
-  //   ], // Only need initial file, browserify finds the deps
-  //   transform: [reactify], // We want to convert JSX to normal javascript
-  //   debug: true, // Gives us sourcemapping
-  //   cache: {}, packageCache: {}, fullPaths: true
-  // })
-  // .plugin(factor, { o: [
-  //   config.javascript.dest + '/index.js',
-  //   config.javascript.dest + '/featureA.js',
-  //   config.javascript.dest + '/featureB.js'
-  //   ]
-  // })
-  // .bundle() // Create the initial bundle when starting the task
-  // .pipe(source(config.javascript.dest + '/common.js'));
+  return browserify({
+    entries: [
+      config.javascript.src + '/index.js',
+      config.javascript.src + '/featureA.js',
+      config.javascript.src + '/featureB.js'
+    ], // Only need initial file, browserify finds the deps
+    transform: [reactify], // We want to convert JSX to normal javascript
+    debug: true, // Gives us sourcemapping
+    cache: {}, packageCache: {}, fullPaths: true
+  })
+  .plugin(factor, { o: [
+    config.javascript.dest + '/index.js',
+    config.javascript.dest + '/featureA.js',
+    config.javascript.dest + '/featureB.js'
+    ]
+  })
+  .bundle() // Create the initial bundle when starting the task
+  .pipe(source('common.js'))
+  .pipe(gulp.dest(config.javascript.dest))
+  .pipe(browserSync.reload({stream: true}));
+
   // return browserify([config.javascript.src + '/index.js']).bundle()
   //   .pipe(source('index.js'))
   //   .pipe(buffer())
@@ -138,21 +140,21 @@ gulp.task('browserify', function () {
   //     stream: true
   //   }));
 
-  var files = [
-    config.javascript.src + '/index.js',
-    config.javascript.src + '/featureB.js'
-  ];
-  return  browserify(files)
-  .plugin(factor, { o: [
-    config.javascript.dest + '/index.js',
-    config.javascript.dest + '/featureB.js'
-    ]
-  })
-  .bundle().pipe(fs.createWriteStream( config.javascript.dest + '/common.js'));
+  // var files = [
+  //   config.javascript.src + '/index.js',
+  //   config.javascript.src + '/featureB.js'
+  // ];
+  // return  browserify(files)
+  // .plugin(factor, { o: [
+  //   config.javascript.dest + '/index.js',
+  //   config.javascript.dest + '/featureB.js'
+  //   ]
+  // })
+  // .bundle().pipe(fs.createWriteStream( config.javascript.dest + '/common.js'));
 });
 
 gulp.task('clean:js', function () {
-  return gulp.src(dest + '/index.min.js')
+  return gulp.src(dest + '/*.min.js')
     .pipe(vinylPaths(del));
 });
 
@@ -189,7 +191,7 @@ gulp.task('browser-sync', function() {
 gulp.task('watch', ['browser-sync'], function(callback) {
   gulp.watch(config.sass.src, ['sass'], browserSync.reload);
   gulp.watch(config.images.src, ['images'], browserSync.reload);
-  gulp.watch(config.javascript.src + '/*.js', ['browserify'], browserSync.reload);
+  gulp.watch(config.javascript.src + '/**/*.js', ['browserify'], browserSync.reload);
 });
 
 gulp.task('default', ['sass', 'browserify', 'images']);
