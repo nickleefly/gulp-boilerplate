@@ -1,58 +1,59 @@
-var gulp         = require('gulp'),
-    sass         = require('gulp-sass'),
-    sourcemaps   = require('gulp-sourcemaps'),
-    autoprefixer = require('gulp-autoprefixer'),
-    changed      = require('gulp-changed'),
-    imagemin     = require('gulp-imagemin'),
-    minifyCSS    = require('gulp-minify-css'),
-    size         = require('gulp-filesize'),
-    uglify       = require('gulp-uglify'),
-    browserify   = require('browserify'),
-    source       = require('vinyl-source-stream'),
-    buffer       = require('vinyl-buffer'),
-    rename       = require('gulp-rename'),
-    del          = require('del'),
-    vinylPaths   = require('vinyl-paths'),
-    iconfont     = require('gulp-iconfont'),
-    swig         = require('gulp-swig'),
-    factor       = require('factor-bundle')
-    browserSync  = require('browser-sync').create(),
-    fs           = require('fs');
+var gulp = require('gulp'),
+  sass = require('gulp-sass'),
+  sourcemaps = require('gulp-sourcemaps'),
+  autoprefixer = require('gulp-autoprefixer'),
+  changed = require('gulp-changed'),
+  imagemin = require('gulp-imagemin'),
+  minifyCSS = require('gulp-minify-css'),
+  size = require('gulp-filesize'),
+  uglify = require('gulp-uglify'),
+  browserify = require('browserify'),
+  source = require('vinyl-source-stream'),
+  buffer = require('vinyl-buffer'),
+  rename = require('gulp-rename'),
+  del = require('del'),
+  vinylPaths = require('vinyl-paths'),
+  iconfont = require('gulp-iconfont'),
+  swig = require('gulp-swig'),
+  factor = require('factor-bundle'),
+  browserSync = require('browser-sync').create(),
+  reactify = require('reactify'),
+  fs = require('fs');
 
 var dest = "./web/static",
-    config = {
-      sass: {
-        src: "./web/css/**/*.{sass,scss}",
-        dest: dest
-      },
-      images: {
-        src: "./web/images/**",
-        dest: dest + "/images"
-      },
-      javascript: {
-        src: "./web/javascript",
-        dest: dest
-      },
-      production: {
-        cssSrc: dest + '/*.css',
-        jsSrc: dest + '/*.js',
-        dest: dest
-      },
-      iconfont: {
-        src: './web/icons/*.svg',
-        dest: dest + '/fonts',
-        sassDest: './web/css',
-        template: './web/css/template/template.sass.swig',
-        sassOutputName: '_icons.sass',
-        fontPath: '../static/fonts',
-        className: 'icon',
-        options: {
-          fontName: 'Boilerplate',
-          appendCodepoints: true,
-          normalize: false
-        }
+  config = {
+    sass: {
+      src: "./web/css/**/*.{sass,scss}",
+      dest: dest
+    },
+    images: {
+      src: "./web/images/**",
+      dest: dest + "/images"
+    },
+    javascript: {
+      src: "./web/javascript",
+      dest: dest
+    },
+    production: {
+      cssSrc: dest + '/*.css',
+      jsSrc: dest + '/*.js',
+      dest: dest
+    },
+    iconfont: {
+      src: './web/icons/*.svg',
+      dest: dest + '/fonts',
+      sassDest: './web/css',
+      template: './web/css/template/template.sass.swig',
+      sassOutputName: '_icons.sass',
+      fontPath: '../static/fonts',
+      className: 'icon',
+      options: {
+        fontName: 'Kaufmich',
+        appendCodepoints: true,
+        normalize: false
       }
-    };
+    }
+  };
 
 function generateIconSass(codepoints, options) {
   gulp.src(config.iconfont.template)
@@ -112,11 +113,23 @@ gulp.task('images', function() {
 });
 
 gulp.task('browserify', function () {
-  return browserify([config.javascript.src + '/index.js']).bundle()
-    .pipe(source('index.js'))
-    .pipe(buffer())
-    .pipe(gulp.dest(config.javascript.dest))
-    .pipe(browserSync.reload({stream: true}));
+  return browserify({
+    entries: [config.javascript.src + '/index.js'], // Only need initial file, browserify finds the deps
+    transform: [reactify], // We want to convert JSX to normal javascript
+    debug: true, // Gives us sourcemapping
+    cache: {}, packageCache: {}, fullPaths: true
+  })
+  .bundle() // Create the initial bundle when starting the task
+  .pipe(source('index.js'))
+  .pipe(gulp.dest(config.javascript.dest)).pipe(browserSync.reload({
+    stream: true
+  }));
+  // return browserify([config.javascript.src + '/index.js']).bundle()
+  //   .pipe(source('index.js'))
+  //   .pipe(buffer())
+  //   .pipe(gulp.dest(config.javascript.dest)).pipe(browserSync.reload({
+  //     stream: true
+  //   }));
 
   // var files = [
   //   config.javascript.src + '/index.js',
