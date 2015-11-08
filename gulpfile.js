@@ -17,8 +17,8 @@ var gulp = require('gulp'),
   swig = require('gulp-swig'),
   factor = require('factor-bundle'),
   browserSync = require('browser-sync').create(),
-  reactify = require('reactify'),
-  fs = require('fs');
+  fs = require('fs'),
+  reactify = require('reactify');
 
 var dest = "./web/static",
   config = {
@@ -48,7 +48,7 @@ var dest = "./web/static",
       fontPath: '../static/fonts',
       className: 'icon',
       options: {
-        fontName: 'Kaufmich',
+        fontName: 'Boilerplate',
         appendCodepoints: true,
         normalize: false
       }
@@ -113,17 +113,24 @@ gulp.task('images', function() {
 });
 
 gulp.task('browserify', function () {
-  return browserify({
-    entries: [config.javascript.src + '/index.js'], // Only need initial file, browserify finds the deps
-    transform: [reactify], // We want to convert JSX to normal javascript
-    debug: true, // Gives us sourcemapping
-    cache: {}, packageCache: {}, fullPaths: true
-  })
-  .bundle() // Create the initial bundle when starting the task
-  .pipe(source('index.js'))
-  .pipe(gulp.dest(config.javascript.dest)).pipe(browserSync.reload({
-    stream: true
-  }));
+  // return browserify({
+  //   entries: [
+  //     config.javascript.src + '/index.js',
+  //     config.javascript.src + '/featureA.js',
+  //     config.javascript.src + '/featureB.js'
+  //   ], // Only need initial file, browserify finds the deps
+  //   transform: [reactify], // We want to convert JSX to normal javascript
+  //   debug: true, // Gives us sourcemapping
+  //   cache: {}, packageCache: {}, fullPaths: true
+  // })
+  // .plugin(factor, { o: [
+  //   config.javascript.dest + '/index.js',
+  //   config.javascript.dest + '/featureA.js',
+  //   config.javascript.dest + '/featureB.js'
+  //   ]
+  // })
+  // .bundle() // Create the initial bundle when starting the task
+  // .pipe(source(config.javascript.dest + '/common.js'));
   // return browserify([config.javascript.src + '/index.js']).bundle()
   //   .pipe(source('index.js'))
   //   .pipe(buffer())
@@ -131,17 +138,17 @@ gulp.task('browserify', function () {
   //     stream: true
   //   }));
 
-  // var files = [
-  //   config.javascript.src + '/index.js',
-  //   config.javascript.src + '/featureA.js'
-  // ];
-  // return  browserify(files)
-  // .plugin(factor, { o: [
-  //   config.javascript.dest + '/index.js',
-  //   config.javascript.dest + '/featureA.js'
-  //   ]
-  // })
-  // .bundle().pipe(fs.createWriteStream( config.javascript.dest + '/common.js'));
+  var files = [
+    config.javascript.src + '/index.js',
+    config.javascript.src + '/featureB.js'
+  ];
+  return  browserify(files)
+  .plugin(factor, { o: [
+    config.javascript.dest + '/index.js',
+    config.javascript.dest + '/featureB.js'
+    ]
+  })
+  .bundle().pipe(fs.createWriteStream( config.javascript.dest + '/common.js'));
 });
 
 gulp.task('clean:js', function () {
@@ -151,7 +158,7 @@ gulp.task('clean:js', function () {
 
 gulp.task('uglify', ['browserify', 'clean:js'], function() {
   return gulp.src(config.production.jsSrc)
-    .pipe(rename('index.min.js'))
+    .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
     .pipe(gulp.dest(config.production.dest))
     .pipe(size());

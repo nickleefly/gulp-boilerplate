@@ -1,19 +1,14 @@
 var $ = jQuery = require('jquery');
-var test = require("./test")();
-var plugin = require('plugin');
+console.log('from Feature A');
 require('bootstrap');
-require("jquery-ui");
+
 // var React = require('react');
 // var ReactDOM = require('react-dom');
 // var Hello = require('./react/helloworld.js')
 
-// ReactDOM.render(<Hello/>, document.getElementById('react-hello'));
-
+// ReactDOM.render(<Hello/>, document.getElementById('react-hello-world'));
 $(function () {
-  var message = '<p>index message</p>';
+  var message = '<p>from Feature A</p>';
   $('body').append(message);
-  console.log('index.js loaded!');
-  plugin();
   console.log(typeof $().modal);
-
 })
